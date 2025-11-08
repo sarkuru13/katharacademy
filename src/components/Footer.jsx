@@ -1,8 +1,12 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 
+/**
+ * Footer Component
+ * Simple, clean footer with navigation links.
+ */
 function Footer() {
   return (
-    // Use a light background for the footer for a softer feel
     <footer className="bg-light text-center text-muted pt-5 pb-4 mt-auto">
       <div className="container">
         <section className="mb-4">
@@ -16,32 +20,18 @@ function Footer() {
             <div className="col-lg-2 col-md-6 mb-4 mb-md-0">
               <h6 className="text-uppercase fw-bold">Pages</h6>
               <ul className="list-unstyled mb-0">
-                <li>
-                  <Link to="/" className="text-muted">Home</Link>
-                </li>
-                <li>
-                  <Link to="/free-videos" className="text-muted">Free Videos</Link>
-                </li>
-                <li>
-                  <Link to="/exclusive" className="text-muted">Exclusive</Link>
-                </li>
-                <li>
-                  <Link to="/contact" className="text-muted">Contact</Link>
-                </li>
+                <li><Link to="/" className="text-muted text-decoration-none">Home</Link></li>
+                <li><Link to="/free-videos" className="text-muted text-decoration-none">Free Videos</Link></li>
+                <li><Link to="/exclusive" className="text-muted text-decoration-none">Exclusive</Link></li>
+                <li><Link to="/contact" className="text-muted text-decoration-none">Contact</Link></li>
               </ul>
             </div>
             <div className="col-lg-2 col-md-6 mb-4 mb-md-0">
               <h6 className="text-uppercase fw-bold">Social</h6>
               <ul className="list-unstyled mb-0">
-                <li>
-                  <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-muted">YouTube</a>
-                </li>
-                <li>
-                  <a href="#!" className="text-muted">Twitter (X)</a>
-                </li>
-                <li>
-                  <a href="#!" className="text-muted">LinkedIn</a>
-                </li>
+                <li><a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-muted text-decoration-none">YouTube</a></li>
+                <li><a href="#!" className="text-muted text-decoration-none">Twitter (X)</a></li>
+                <li><a href="#!" className="text-muted text-decoration-none">LinkedIn</a></li>
               </ul>
             </div>
           </div>
@@ -54,4 +44,5 @@ function Footer() {
     </footer>
   );
 }
+
 export default Footer;

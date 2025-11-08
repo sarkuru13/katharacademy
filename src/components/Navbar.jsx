@@ -1,12 +1,15 @@
+import React from 'react';
 import { Link, NavLink } from "react-router-dom";
 
+/**
+ * Navbar Component
+ * Clean, responsive navigation bar.
+ */
 function Navbar() {
   return (
-    // Use bg-white for a cleaner, modern look with a subtle shadow
     <nav className="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div className="container">
         <Link className="navbar-brand fw-bold" to="/">
-          {/* You can add an SVG logo here */}
           <span className="text-primary">Kathar</span>Academy
         </Link>
         <button
@@ -22,7 +25,6 @@ function Navbar() {
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
           <ul className="navbar-nav ms-auto">
-            {/* Use NavLink for active class styling */}
             <li className="nav-item">
               <NavLink className="nav-link" end to="/">
                 Home
@@ -49,4 +51,5 @@ function Navbar() {
     </nav>
   );
 }
+
 export default Navbar;

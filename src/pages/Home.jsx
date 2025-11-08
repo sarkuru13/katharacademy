@@ -1,7 +1,16 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
-import VideoCard from '../components/VideoCard';
+import PlaylistCard from '../components/PlaylistCard';
+import AdBanner from '../components/AdBanner';
+import { allPlaylists } from '../data'; // Import the mock data
 
+/**
+ * Home Page
+ * Features a hero section and links to playlist categories.
+ */
 function Home() {
+  const featuredPlaylists = Object.entries(allPlaylists).slice(0, 3); // Get first 3 playlists
+
   return (
     <>
       {/* Hero Section */}
@@ -21,72 +30,25 @@ function Home() {
         </div>
       </div>
 
-      {/* Featured Free Videos Section */}
+      {/* Featured Playlists Section */}
       <div className="container my-5">
-        <h2 className="text-center mb-4">Featured Free Videos</h2>
+        <h2 className="text-center mb-4">Featured Playlists</h2>
         <div className="row">
-          <div className="col-md-6 col-lg-4 mb-4">
-            <VideoCard
-              title="Learn React Basics"
-              videoId="dGcsHMXbSOA"
+          {featuredPlaylists.map(([id, playlist]) => (
+            <PlaylistCard
+              key={id}
+              playlistId={id}
+              title={playlist.title}
+              description={playlist.description}
+              thumbnailUrl={playlist.thumbnailUrl}
             />
-          </div>
-          <div className="col-md-6 col-lg-4 mb-4">
-            <VideoCard
-              title="Understanding JavaScript"
-              videoId="W6NZfCO5SIk"
-            />
-          </div>
-          <div className="col-md-6 col-lg-4 mb-4">
-            {/* You can add more featured videos */}
-            <VideoCard
-              title="CSS Grid Layout"
-              videoId="f-xyTHsY-w" // Example video ID
-            />
-          </div>
-        </div>
-        <div className="text-center">
-          <Link className="btn btn-outline-primary" to="/free-videos">
-            View All Free Videos
-          </Link>
+          ))}
         </div>
       </div>
-
-      {/* Featured Exclusive Videos Section */}
-      <div className="container my-5">
-        <h2 className="text-center mb-4">Exclusive Content</h2>
-        <p className="text-center text-muted mb-4">
-          Special videos available only on our website!
-        </p>
-        <div className="row">
-          <div className="col-md-6 col-lg-4 mb-4">
-            <VideoCard
-              title="Exclusive Lesson 1: Deep Dive"
-              videoId="YOUR_UNLISTED_VIDEO_ID_1"
-            />
-          </div>
-          <div className="col-md-6 col-lg-4 mb-4">
-            <VideoCard
-              title="Exclusive Lesson 2: Pro Tips"
-              videoId="YOUR_UNLISTED_VIDEO_ID_2"
-            />
-          </div>
-          <div className="col-md-6 col-lg-4 mb-4">
-            <div className="card h-100 shadow-sm border-primary border-2">
-              <div className="card-body text-center d-flex flex-column justify-content-center">
-                <h5 className="card-title">More Coming Soon!</h5>
-                <p className="card-text">
-                  New exclusive content is added regularly.
-                </p>
-                <Link className="btn btn-primary mt-auto" to="/exclusive">
-                  See All Exclusive Videos
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      
+      <AdBanner />
     </>
   );
 }
+
 export default Home;

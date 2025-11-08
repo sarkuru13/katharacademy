@@ -1,9 +1,14 @@
+import React from 'react';
+
+/**
+ * Contact Page
+ * A simple contact form.
+ */
 function Contact() {
   return (
     <div className="container my-5">
       <div className="row justify-content-center">
         <div className="col-lg-8">
-          {/* Wrap the form in a card for better visual separation */}
           <div className="card shadow-sm border-0">
             <div className="card-body p-4 p-md-5">
               <div className="text-center mb-4">
@@ -56,4 +61,5 @@ function Contact() {
     </div>
   );
 }
+
 export default Contact;

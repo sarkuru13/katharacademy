@@ -1,6 +1,16 @@
-import VideoCard from "../components/VideoCard";
+import React from 'react';
+import PlaylistCard from '../components/PlaylistCard';
+import { allPlaylists } from '../data'; // Import the mock data
 
+/**
+ * FreeVideos Page
+ * Displays all playlists marked as 'free'.
+ */
 function FreeVideos() {
+  const freePlaylists = Object.entries(allPlaylists).filter(
+    ([, playlist]) => playlist.category === 'free'
+  );
+
   return (
     <div className="container my-5">
       <div className="text-center mb-5">
@@ -10,26 +20,22 @@ function FreeVideos() {
         </p>
       </div>
       <div className="row">
-        <div className="col-md-6 col-lg-4 mb-4">
-          <VideoCard title="Learn React Basics" videoId="dGcsHMXbSOA" />
-        </div>
-        <div className="col-md-6 col-lg-4 mb-4">
-          <VideoCard title="Understanding JavaScript" videoId="W6NZfCO5SIk" />
-        </div>
-        <div className="col-md-6 col-lg-4 mb-4">
-          <VideoCard title="CSS Grid Layout" videoId="f-xyTHsY-w" />
-        </div>
-        <div className="col-md-6 col-lg-4 mb-4">
-          <VideoCard title="Flexbox Explained" videoId="u-N33M" />
-        </div>
-        <div className="col-md-6 col-lg-4 mb-4">
-          <VideoCard title="Node.js Crash Course" videoId="fBNz5xF-Kx4" />
-        </div>
-        <div className="col-md-6 col-lg-4 mb-4">
-          <VideoCard title="Python for Beginners" videoId="kqtD5d_H" />
-        </div>
+        {freePlaylists.length > 0 ? (
+          freePlaylists.map(([id, playlist]) => (
+            <PlaylistCard
+              key={id}
+              playlistId={id}
+              title={playlist.title}
+              description={playlist.description}
+              thumbnailUrl={playlist.thumbnailUrl}
+            />
+          ))
+        ) : (
+          <p className="text-center text-muted">No free playlists available at the moment.</p>
+        )}
       </div>
     </div>
   );
 }
+
 export default FreeVideos;

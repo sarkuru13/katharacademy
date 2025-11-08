@@ -1,72 +1,44 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
+import { allPlaylists } from '../data'; // Import the mock data
 
-// --- Mock Playlist Data with Quizzes ---
-const allPlaylists = {
-  'react-basics': {
-    title: 'React Basics',
-    videos: [
-      { 
-        id: 'dGcsHMXbSOA', 
-        title: 'What is React?',
-        quiz: [
-          { q: 'What is React?', options: ['A library', 'A framework', 'A language'], answer: 0 },
-          { q: 'What is JSX?', options: ['JavaScript XML', 'JavaScript X', 'Java Syntax'], answer: 0 }
-        ]
-      },
-      { 
-        id: 'W6NZfCO5SIk', 
-        title: 'Understanding JSX',
-        quiz: [
-          { q: 'Can you use JS in JSX?', options: ['Yes, with {}', 'No'], answer: 0 }
-        ]
-      },
-      { 
-        id: 'f-xyTHsY-w', 
-        title: 'Props vs. State',
-        quiz: [
-          { q: 'Are props mutable?', options: ['Yes', 'No'], answer: 1 },
-          { q: 'Is state mutable?', options: ['Yes', 'No'], answer: 0 }
-        ]
-      },
-    ],
-  },
-  'javascript-fundamentals': {
-    title: 'JavaScript Fundamentals',
-    videos: [
-      { id: 'W6NZfCO5SIk', title: 'Understanding JavaScript', quiz: [] },
-      { id: 'fBNz5xF-Kx4', title: 'Variables and Data Types', quiz: [] },
-      { id: 'u-N33M', title: 'Functions and Scope', quiz: [] },
-    ],
-  },
-  'exclusive-deep-dive': {
-    title: 'Exclusive Deep Dive',
-    videos: [
-      { id: 'YOUR_UNLISTED_VIDEO_ID_1', title: 'Advanced State Management', quiz: [] },
-      { id: 'YOUR_UNLISTED_VIDEO_ID_2', title: 'Performance Optimization Tips', quiz: [] },
-      { id: 'YOUR_UNLISTED_VIDEO_ID_3', title: 'Custom Hooks Explained', quiz: [] },
-    ],
-  },
-};
-// --- End Mock Data ---
-
-
+/**
+ * Player Page
+ * The core learning interface with video, playlist, notes, and quiz.
+ */
 function PlayerPage() {
   const { playlistId } = useParams();
   
+  // Find the playlist from our mock data
   const playlist = useMemo(() => allPlaylists[playlistId] || { title: 'Not Found', videos: [] }, [playlistId]);
 
+  // State for the currently selected video
   const [currentVideo, setCurrentVideo] = useState(playlist.videos[0]);
+  
+  // State for notes and quizzes
   const [notes, setNotes] = useState('');
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
 
   // When the video changes, reset the notes and quiz
   useEffect(() => {
+    // Find the current video in the playlist
+    const firstVideo = playlist.videos[0];
+    setCurrentVideo(firstVideo);
+
+    // Reset notes and quiz state
     setNotes('');
     setQuizAnswers({});
     setQuizResult(null);
-  }, [currentVideo]);
+  }, [playlistId, playlist.videos]); // Depend on playlistId to reset when playlist changes
+
+  // Handle changing the video
+  const handleVideoChange = (video) => {
+    setCurrentVideo(video);
+    setNotes(''); // Clear notes for new video
+    setQuizAnswers({}); // Clear quiz answers
+    setQuizResult(null); // Reset quiz result
+  };
 
   // --- Notes Download ---
   const handleDownloadNotes = () => {
@@ -74,7 +46,6 @@ function PlayerPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    // Create a filename based on video title
     const filename = `${currentVideo.title.replace(/ /g, '_')}_notes.txt`;
     a.download = filename;
     document.body.appendChild(a);
@@ -101,55 +72,62 @@ function PlayerPage() {
     });
     setQuizResult({ score, total: quiz.length });
   };
+  
+  const currentQuiz = currentVideo?.quiz || [];
 
   // --- Render ---
   if (!currentVideo) {
     return (
       <div className="container my-5 text-center">
         <h1 className="display-5">Playlist Not Found</h1>
-        <p className="fs-5 text-muted">Sorry, we couldn't find the playlist you're looking for.</p>
+        <p className="fs-5 text-muted">Sorry, we couldn't find the playlist or it's empty.</p>
+        <Link to="/" className="btn btn-primary">Back to Home</Link>
       </div>
     );
   }
 
   return (
     <div className="container-fluid my-4">
-      <h1 className="h2 mb-4">{playlist.title}</h1>
       <div className="row">
         {/* --- Video Player and Playlist --- */}
         <div className="col-lg-8">
-          {/* ... video player and list code (unchanged) ... */}
+          {/* Video Player */}
           <div className="card shadow-sm border-0 mb-4">
             <div className="ratio ratio-16x9">
               <iframe
                 src={`https://www.youtube.com/embed/${currentVideo.id}`}
                 title={currentVideo.title}
                 allowFullScreen
+                className="rounded-top"
               ></iframe>
             </div>
             <div className="card-body">
-              <h5 className="card-title">{currentVideo.title}</h5>
+              <h2 className="h4">{currentVideo.title}</h2>
+              <h1 className="h6 text-muted">{playlist.title}</h1>
             </div>
           </div>
+          
+          {/* Playlist */}
           <h3 className="h5 mb-3">Videos in this playlist</h3>
-          <div className="list-group">
-            {playlist.videos.map((video) => (
-              <button
-                key={video.id}
-                type="button"
-                className={`list-group-item list-group-item-action ${video.id === currentVideo.id ? 'active' : ''}`}
-                onClick={() => setCurrentVideo(video)}
-              >
-                {video.title}
-              </button>
-            ))}
+          <div className="video-playlist-scroll">
+            <div className="list-group list-group-flush">
+              {playlist.videos.map((video, index) => (
+                <button
+                  key={video.id}
+                  type="button"
+                  className={`list-group-item list-group-item-action ${video.id === currentVideo.id ? 'active' : ''}`}
+                  onClick={() => handleVideoChange(video)}
+                >
+                  <span className="fw-bold me-2">{index + 1}.</span> {video.title}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         {/* --- Notes and Quiz Sidebar --- */}
         <div className="col-lg-4">
-          <div className="card shadow-sm border-0 sticky-top" style={{top: '80px'}}>
-            {/* ... tab navigation (unchanged) ... */}
+          <div className="card shadow-sm border-0 player-sidebar">
             <div className="card-header">
               <ul className="nav nav-tabs card-header-tabs" id="learningTabs" role="tablist">
                 <li className="nav-item" role="presentation">
@@ -162,12 +140,12 @@ function PlayerPage() {
             </div>
             
             {/* Tab Content */}
-            <div className="card-body tab-content" id="learningTabsContent" style={{maxHeight: '70vh', overflowY: 'auto'}}>
+            <div className="card-body tab-content card-body-scrollable" id="learningTabsContent">
               {/* Notes Tab */}
               <div className="tab-pane fade show active" id="notes" role="tabpanel" aria-labelledby="notes-tab">
                 <h5 className="card-title">My Notes</h5>
                 <p className="card-text text-muted small">
-                  Jot down your thoughts for "{currentVideo.title}".
+                  Notes for "{currentVideo.title}"
                 </p>
                 <textarea 
                   className="form-control" 
@@ -179,6 +157,7 @@ function PlayerPage() {
                 <button 
                   className="btn btn-primary mt-3"
                   onClick={handleDownloadNotes}
+                  disabled={!notes}
                 >
                   Download Notes
                 </button>
@@ -190,16 +169,16 @@ function PlayerPage() {
                 <p className="text-muted small">Quiz for "{currentVideo.title}"</p>
                 
                 {quizResult && (
-                  <div className="alert alert-success">
+                  <div className={`alert ${quizResult.score === quizResult.total ? 'alert-success' : 'alert-warning'}`}>
                     You scored {quizResult.score} out of {quizResult.total}!
                   </div>
                 )}
 
-                {currentVideo.quiz.length === 0 ? (
+                {currentQuiz.length === 0 ? (
                   <p className="text-muted">No quiz available for this video.</p>
                 ) : (
                   <form onSubmit={(e) => e.preventDefault()}>
-                    {currentVideo.quiz.map((q, qIndex) => (
+                    {currentQuiz.map((q, qIndex) => (
                       <div key={qIndex} className="mb-4">
                         <p className="fw-bold">{qIndex + 1}. {q.q}</p>
                         {q.options.map((option, oIndex) => (
