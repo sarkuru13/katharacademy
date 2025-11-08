@@ -1,31 +1,27 @@
+// src/contexts/PlaylistContext.jsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 // --- Default Mock Data ---
-// This is the data that will be loaded the *first time* someone visits.
-// I've updated the 'screenpal' video with the ID you provided.
 const MOCK_PLAYLIST_DATA = {
   'react-basics': {
     title: 'React Basics',
     description: 'Learn the fundamentals of React, from components to state.',
     thumbnail: 'https://placehold.co/600x400/007BFF/FFFFFF?text=React+Basics',
+    category: 'free', // Used by FreeVideos page
     videos: [
       {
         id: 1,
         type: 'youtube',
         src: 'dGcsHMXbSOA',
         title: 'What is React?',
-        quiz: [
-           { q: 'What is React?', options: ['A library', 'A framework'], answer: 0 },
-        ],
+        quiz: [{ q: 'What is React?', options: ['A library', 'A framework'], answer: 0 }],
       },
       {
         id: 12,
         type: 'screenpal',
-        src: 'cTXjDMnFBAf', // <-- UPDATED with your new ID
+        src: 'cTXjDMnFBAf',
         title: 'Example ScreenPal Video',
-        quiz: [
-          { q: 'Was this video helpful?', options: ['Yes', 'No'], answer: 0 },
-        ],
+        quiz: [{ q: 'Was this video helpful?', options: ['Yes', 'No'], answer: 0 }],
       },
       {
         id: 2,
@@ -41,15 +37,29 @@ const MOCK_PLAYLIST_DATA = {
         title: 'Example Vimeo Video',
         quiz: [],
       },
-      // ... other videos
+      {
+        id: 6,
+        type: 'googledrive',
+        src: '1IU1n71mK0cXsUGAD5ZT68hz_JKYAsN0T',
+        title: 'My Google Drive Video',
+        quiz: [],
+      },
+      {
+        id: 7,
+        type: 'mux',
+        src: 'X02FbJmAoPmVOWiDck8KVdlDPXZmWN3wyRPNZGAyuh0100',
+        title: 'My Mux Video',
+        quiz: [],
+      }
     ],
   },
   'javascript-fundamentals': {
     title: 'JavaScript Fundamentals',
     description: 'Master the core concepts of JavaScript.',
     thumbnail: 'https://placehold.co/600x400/F0DB4F/000000?text=JavaScript',
+    category: 'free', // Used by FreeVideos page
     videos: [
-       {
+      {
         id: 4,
         type: 'youtube',
         src: 'W6NZfCO5eDE',
@@ -62,8 +72,9 @@ const MOCK_PLAYLIST_DATA = {
     title: 'Exclusive Deep Dive',
     description: 'Advanced topics and pro tips, only for members.',
     thumbnail: 'https://placehold.co/600x400/6F42C1/FFFFFF?text=Exclusive+Content',
+    category: 'exclusive', // Used by Exclusive page
     videos: [
-       {
+      {
         id: 5,
         type: 'youtube',
         src: 'SqcY0GlETPk',
@@ -129,13 +140,3 @@ export const usePlaylists = () => {
   }
   return context;
 };
-
-// ---
-// This is a new export. We need to update the other files that import
-// 'allPlaylists' to use the context instead.
-// For simplicity in this fix, I'll just export the mock data directly.
-// In a real app, you'd use the Context Provider.
-// ---
-
-// TEMP FIX: Export mock data directly so other pages don't break
-export const allPlaylists = MOCK_PLAYLIST_DATA;

@@ -1,15 +1,13 @@
+// src/pages/Home.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
 import PlaylistCard from '../components/PlaylistCard';
 import AdBanner from '../components/AdBanner';
-import { allPlaylists } from '../data'; // Import the mock data
+import { usePlaylists } from '../contexts/PlaylistContext.jsx'; // <-- CHANGED
 
-/**
- * Home Page
- * Features a hero section and links to playlist categories.
- */
 function Home() {
-  const featuredPlaylists = Object.entries(allPlaylists).slice(0, 3); // Get first 3 playlists
+  const { playlists } = usePlaylists(); // <-- USE THE HOOK
+  const featuredPlaylists = Object.entries(playlists).slice(0, 3); // <-- Use state
 
   return (
     <>
@@ -40,7 +38,7 @@ function Home() {
               playlistId={id}
               title={playlist.title}
               description={playlist.description}
-              thumbnailUrl={playlist.thumbnailUrl}
+              thumbnailUrl={playlist.thumbnail} // <-- FIXED property name
             />
           ))}
         </div>

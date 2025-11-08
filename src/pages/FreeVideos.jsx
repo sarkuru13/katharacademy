@@ -1,13 +1,13 @@
+// src/pages/FreeVideos.jsx
 import React from 'react';
 import PlaylistCard from '../components/PlaylistCard';
-import { allPlaylists } from '../data'; // Import the mock data
+import { usePlaylists } from '../contexts/PlaylistContext.jsx'; // <-- CHANGED
 
-/**
- * FreeVideos Page
- * Displays all playlists marked as 'free'.
- */
 function FreeVideos() {
-  const freePlaylists = Object.entries(allPlaylists).filter(
+  const { playlists } = usePlaylists(); // <-- USE THE HOOK
+
+  // This filter will now work
+  const freePlaylists = Object.entries(playlists).filter(
     ([, playlist]) => playlist.category === 'free'
   );
 
@@ -27,7 +27,7 @@ function FreeVideos() {
               playlistId={id}
               title={playlist.title}
               description={playlist.description}
-              thumbnailUrl={playlist.thumbnailUrl}
+              thumbnailUrl={playlist.thumbnail} // <-- FIXED property name
             />
           ))
         ) : (

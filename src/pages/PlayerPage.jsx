@@ -1,16 +1,14 @@
+// src/pages/PlayerPage.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { allPlaylists } from '../data'; // Import the mock data
+import { usePlaylists } from '../contexts/PlaylistContext.jsx'; 
 
-/**
- * Player Page
- * The core learning interface with video, playlist, notes, and quiz.
- */
 function PlayerPage() {
   const { playlistId } = useParams();
+  const { playlists } = usePlaylists(); 
   
-  // Find the playlist from our mock data
-  const playlist = useMemo(() => allPlaylists[playlistId] || { title: 'Not Found', videos: [] }, [playlistId]);
+  // Find the playlist from our context data
+  const playlist = useMemo(() => playlists[playlistId] || { title: 'Not Found', videos: [] }, [playlists, playlistId]);
 
   // State for the currently selected video
   const [currentVideo, setCurrentVideo] = useState(playlist.videos[0]);
@@ -20,9 +18,8 @@ function PlayerPage() {
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
 
-  // When the video changes, reset the notes and quiz
+  // When the playlistId or playlist data changes, set the video to the first in that playlist
   useEffect(() => {
-    // Find the current video in the playlist
     const firstVideo = playlist.videos[0];
     setCurrentVideo(firstVideo);
 
@@ -30,14 +27,14 @@ function PlayerPage() {
     setNotes('');
     setQuizAnswers({});
     setQuizResult(null);
-  }, [playlistId, playlist.videos]); // Depend on playlistId to reset when playlist changes
+  }, [playlistId, playlist.videos]);
 
   // Handle changing the video
   const handleVideoChange = (video) => {
     setCurrentVideo(video);
-    setNotes(''); // Clear notes for new video
-    setQuizAnswers({}); // Clear quiz answers
-    setQuizResult(null); // Reset quiz result
+    setNotes('');
+    setQuizAnswers({});
+    setQuizResult(null);
   };
 
   // --- Notes Download ---
@@ -75,12 +72,79 @@ function PlayerPage() {
   
   const currentQuiz = currentVideo?.quiz || [];
 
+  // --- Video Render Function ---
+  const renderVideoPlayer = (video) => {
+    if (!video) return null;
+
+    const commonIframeProps = {
+      title: video.title,
+      allowFullScreen: true,
+      className: "rounded-top",
+      style: { border: 0 },
+      allow: "autoplay; fullscreen; picture-in-picture",
+    };
+
+    switch (video.type) {
+      case 'youtube':
+        return (
+          <iframe
+            src={`https://www.youtube.com/embed/${video.src}`}
+            {...commonIframeProps}
+          ></iframe>
+        );
+      case 'screenpal':
+        return (
+          <iframe
+            src={`https://go.screenpal.com/player/${video.src}?width=100%&height=100%&ff=1&title=0&brand=0`}
+            {...commonIframeProps}
+          ></iframe>
+        );
+      case 'vimeo':
+        return (
+          <iframe
+            src={`https://player.vimeo.com/video/${video.src}`}
+            {...commonIframeProps}
+          ></iframe>
+        );
+      case 'mp4':
+        return (
+          <video
+            controls
+            src={video.src}
+            className="rounded-top"
+            style={{ width: '100%', height: '100%', backgroundColor: 'black' }}
+          >
+            Your browser does not support the video tag.
+          </video>
+        );
+      
+      case 'googledrive':
+        return (
+          <iframe
+            src={`https://drive.google.com/file/d/${video.src}/preview`}
+            {...commonIframeProps}
+          ></iframe>
+        );
+      
+      case 'mux':
+        return (
+          <iframe
+            src={`https://player.mux.com/${video.src}?video-title=${encodeURIComponent(video.title)}`}
+            {...commonIframeProps}
+          ></iframe>
+        );
+
+      default:
+        return <div className="p-3 text-center">Unsupported video type: {video.type}</div>;
+    }
+  };
+
   // --- Render ---
   if (!currentVideo) {
     return (
       <div className="container my-5 text-center">
         <h1 className="display-5">Playlist Not Found</h1>
-        <p className="fs-5 text-muted">Sorry, we couldn't find the playlist or it's empty.</p>
+        <p className="fs-5 text-muted">Sorry, we couldn't find this playlist or it's empty.</p>
         <Link to="/" className="btn btn-primary">Back to Home</Link>
       </div>
     );
@@ -94,12 +158,7 @@ function PlayerPage() {
           {/* Video Player */}
           <div className="card shadow-sm border-0 mb-4">
             <div className="ratio ratio-16x9">
-              <iframe
-                src={`https://www.youtube.com/embed/${currentVideo.id}`}
-                title={currentVideo.title}
-                allowFullScreen
-                className="rounded-top"
-              ></iframe>
+              {renderVideoPlayer(currentVideo)}
             </div>
             <div className="card-body">
               <h2 className="h4">{currentVideo.title}</h2>

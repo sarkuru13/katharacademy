@@ -1,13 +1,13 @@
+// src/pages/Exclusive.jsx
 import React from 'react';
 import PlaylistCard from '../components/PlaylistCard';
-import { allPlaylists } from '../data'; // Import the mock data
+import { usePlaylists } from '../contexts/PlaylistContext.jsx'; // <-- CHANGED
 
-/**
- * Exclusive Page
- * Displays all playlists marked as 'exclusive'.
- */
 function Exclusive() {
-  const exclusivePlaylists = Object.entries(allPlaylists).filter(
+  const { playlists } = usePlaylists(); // <-- USE THE HOOK
+
+  // This filter will now work
+  const exclusivePlaylists = Object.entries(playlists).filter(
     ([, playlist]) => playlist.category === 'exclusive'
   );
 
@@ -27,7 +27,7 @@ function Exclusive() {
               playlistId={id}
               title={playlist.title}
               description={playlist.description}
-              thumbnailUrl={playlist.thumbnailUrl}
+              thumbnailUrl={playlist.thumbnail} // <-- FIXED property name
             />
           ))
         ) : (
