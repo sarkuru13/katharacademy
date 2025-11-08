@@ -1,23 +1,58 @@
 function Contact() {
   return (
-    <div className="col-md-8 mx-auto">
-      <h2>Contact Us</h2>
-      <p className="lead">Have questions or suggestions? Reach out to us below.</p>
-      <form action="https://formspree.io/f/mrbzekpw" method="POST">
-        <div className="mb-3">
-          <label className="form-label">Name</label>
-          <input type="text" className="form-control" name="name" required />
+    <div className="container my-5">
+      <div className="row justify-content-center">
+        <div className="col-lg-8">
+          {/* Wrap the form in a card for better visual separation */}
+          <div className="card shadow-sm border-0">
+            <div className="card-body p-4 p-md-5">
+              <div className="text-center mb-4">
+                <h1 className="h2 fw-bold">Contact Us</h1>
+                <p className="text-muted">
+                  Have questions or suggestions? Reach out to us below.
+                </p>
+              </div>
+              <form action="https://formspree.io/f/mrbzekpw" method="POST">
+                <div className="mb-3">
+                  <label htmlFor="nameInput" className="form-label">Name</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="nameInput"
+                    name="name"
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="emailInput" className="form-label">Email</label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="emailInput"
+                    name="email"
+                    required
+                  />
+                </div>
+                <div className="mb-3">
+                  <label htmlFor="messageInput" className="form-label">Message</label>
+                  <textarea
+                    className="form-control"
+                    id="messageInput"
+                    rows="5"
+                    name="message"
+                    required
+                  ></textarea>
+                </div>
+                <div className="text-center">
+                  <button type="submit" className="btn btn-primary btn-lg">
+                    Send Message
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-        <div className="mb-3">
-          <label className="form-label">Email</label>
-          <input type="email" className="form-control" name="email" required />
-        </div>
-        <div className="mb-3">
-          <label className="form-label">Message</label>
-          <textarea className="form-control" rows="4" name="message" required></textarea>
-        </div>
-        <button type="submit" className="btn btn-primary">Send Message</button>
-      </form>
+      </div>
     </div>
   );
 }
