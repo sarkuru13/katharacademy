@@ -1,35 +1,396 @@
 // src/pages/PlayerPage.jsx
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { usePlaylists } from '../contexts/PlaylistContext.jsx'; 
+import { usePlaylists } from '../contexts/PlaylistContext.jsx';
+import {
+  Play,
+  Pause,
+  Volume2,
+  Volume1,
+  VolumeX,
+  Maximize,
+  Minimize,
+  FastForward,
+} from 'lucide-react';
 
+/**
+ * Custom Video Player Component
+ */
+const CustomVideoPlayer = ({ video }) => {
+  const videoRef = useRef(null);
+  const playerWrapperRef = useRef(null);
+  const progressBarRef = useRef(null);
+
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  // --- THIS IS THE FIXED LINE ---
+  const [duration, setDuration] = useState(0);
+  // --- END OF FIX ---
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  
+  // NEW: Playback Speed
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const PLAYBACK_SPEEDS = [1, 1.25, 1.5, 1.75, 2, 0.75];
+
+  let controlsTimeout;
+
+  // --- Utility Functions ---
+
+  const formatTime = (timeInSeconds) => {
+    if (isNaN(timeInSeconds) || !isFinite(timeInSeconds)) {
+      return '--:--';
+    }
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = Math.floor(timeInSeconds % 60);
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(
+      2,
+      '0'
+    )}`;
+  };
+
+  // --- Event Handlers for Video Element ---
+
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement) return;
+
+    const handleTimeUpdate = () => setCurrentTime(videoElement.currentTime);
+    const handleDurationChange = () => {
+      if (videoElement.duration && isFinite(videoElement.duration)) {
+        setDuration(videoElement.duration);
+      }
+    };
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleVolumeChange = () => {
+      setVolume(videoElement.volume);
+      setIsMuted(videoElement.muted);
+    };
+
+    if (videoElement.duration && isFinite(videoElement.duration)) {
+      setDuration(videoElement.duration);
+    }
+    if (!videoElement.paused) {
+      setIsPlaying(true);
+    }
+    videoElement.playbackRate = playbackRate;
+
+    videoElement.addEventListener('timeupdate', handleTimeUpdate);
+    videoElement.addEventListener('loadedmetadata', handleDurationChange);
+    videoElement.addEventListener('durationchange', handleDurationChange);
+    videoElement.addEventListener('play', handlePlay);
+    videoElement.addEventListener('pause', handlePause);
+    videoElement.addEventListener('volumechange', handleVolumeChange);
+
+    return () => {
+      videoElement.removeEventListener('timeupdate', handleTimeUpdate);
+      videoElement.removeEventListener('loadedmetadata', handleDurationChange);
+      videoElement.removeEventListener('durationchange', handleDurationChange);
+      videoElement.removeEventListener('play', handlePlay);
+      videoElement.removeEventListener('pause', handlePause);
+      videoElement.removeEventListener('volumechange', handleVolumeChange);
+    };
+  }, [video, playbackRate]); // Add playbackRate as dependency
+
+  // --- Event Handlers for Fullscreen ---
+
+  useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullScreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullScreenChange);
+    };
+  }, []);
+
+  // --- Event Handlers for Controls Visibility ---
+
+  const handleMouseMove = () => {
+    setShowControls(true);
+    clearTimeout(controlsTimeout);
+    controlsTimeout = setTimeout(() => {
+      if (isPlaying) {
+        setShowControls(false);
+      }
+    }, 3000);
+  };
+
+  const handleMouseLeave = () => {
+    if (isPlaying) {
+      setShowControls(false);
+    }
+  };
+
+  useEffect(() => {
+    handleMouseMove();
+    return () => clearTimeout(controlsTimeout);
+  }, [isPlaying]);
+
+  // --- Control Functions (wrapped in useCallback) ---
+
+  const togglePlayPause = useCallback(() => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        // *** THIS IS THE FIX FOR THE "NOT PLAYED" BUG ***
+        const playPromise = videoRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(error => {
+            console.error("Video play failed:", error);
+          });
+        }
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, []);
+
+  const toggleFullScreen = useCallback(() => {
+    if (!playerWrapperRef.current) return;
+    if (!document.fullscreenElement) {
+      playerWrapperRef.current.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }, []);
+  
+  const toggleMute = useCallback(() => {
+    if (videoRef.current) {
+      const newMuted = !videoRef.current.muted;
+      videoRef.current.muted = newMuted;
+      if (!newMuted && videoRef.current.volume === 0) {
+        videoRef.current.volume = 0.5;
+      }
+    }
+  }, []);
+
+  // NEW: Cycle Playback Speed
+  const cyclePlaybackSpeed = useCallback(() => {
+    if (!videoRef.current) return;
+    const currentSpeedIndex = PLAYBACK_SPEEDS.indexOf(playbackRate);
+    const nextSpeedIndex = (currentSpeedIndex + 1) % PLAYBACK_SPEEDS.length;
+    const newSpeed = PLAYBACK_SPEEDS[nextSpeedIndex];
+    setPlaybackRate(newSpeed);
+    videoRef.current.playbackRate = newSpeed;
+  }, [playbackRate, PLAYBACK_SPEEDS]);
+
+  const handleSeek = (e) => {
+    if (!duration) return;
+    const { width } = progressBarRef.current.getBoundingClientRect();
+    const clickPosition = e.nativeEvent.offsetX;
+    const newTime = (clickPosition / width) * duration;
+    
+    if (videoRef.current) {
+      videoRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume;
+      videoRef.current.muted = newVolume === 0;
+    }
+  };
+
+  // --- NEW: Keyboard Shortcuts ---
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const activeEl = document.activeElement;
+      if (
+        activeEl &&
+        (activeEl.tagName === 'TEXTAREA' ||
+          activeEl.tagName === 'INPUT' ||
+          activeEl.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (!videoRef.current) return;
+
+      switch (e.key.toLowerCase()) {
+        case 'f':
+          e.preventDefault();
+          toggleFullScreen();
+          break;
+        case 'arrowright':
+          e.preventDefault();
+          videoRef.current.currentTime = Math.min(videoRef.current.currentTime + 10, duration);
+          break;
+        case 'arrowleft':
+          e.preventDefault();
+          videoRef.current.currentTime = Math.max(videoRef.current.currentTime - 10, 0);
+          break;
+        case ' ':
+          e.preventDefault();
+          togglePlayPause();
+          break;
+        case 'm':
+          e.preventDefault();
+          toggleMute();
+          break;
+        case 'p':
+          e.preventDefault();
+          cyclePlaybackSpeed();
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [togglePlayPause, toggleFullScreen, toggleMute, cyclePlaybackSpeed, duration]);
+  
+  // --- Volume Icon Logic ---
+  const VolumeIcon = () => {
+    if (isMuted || volume === 0) return <VolumeX size={20} />;
+    if (volume < 0.5) return <Volume1 size={20} />;
+    return <Volume2 size={20} />;
+  };
+
+  // --- Main Render ---
+  if (!video) return null;
+
+  if (video.type !== 'appwrite') {
+    return (
+      <div 
+        className="d-flex justify-content-center align-items-center bg-dark text-white rounded-top" 
+        style={{ width: '100%', height: '100%', minHeight: '300px' }}
+      >
+        <div className="text-center p-3">
+          <h5>Unsupported Video Type</h5>
+          <p className="mb-0 text-muted">This player is configured to only play videos with type: 'appwrite'.</p>
+          <p className="text-muted small">Found type: '{video.type}'</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      ref={playerWrapperRef}
+      className={`player-wrapper ${isPlaying ? '' : 'paused'}`}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      <video
+        ref={videoRef}
+        src={video.src}
+        className="rounded-top"
+        onClick={togglePlayPause}
+        preload="metadata" 
+      />
+      
+      <button 
+        className={`center-play-button ${showControls ? 'visible' : ''}`}
+        onClick={togglePlayPause}
+        aria-label={isPlaying ? 'Pause' : 'Play'}
+      >
+        {isPlaying ? <Pause size={40} fill="white" /> : <Play size={40} fill="white" />}
+      </button>
+
+      <div className={`video-controls-container ${showControls ? 'visible' : ''}`}>
+        <div ref={progressBarRef} className="progress-bar-container" onClick={handleSeek}>
+          <div className="progress-bar">
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${(currentTime / duration) * 100 || 0}%` }}
+            >
+              <div className="progress-bar-thumb"></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="controls-bottom-bar">
+          <div className="controls-group left">
+            <button
+              className="control-button"
+              onClick={togglePlayPause}
+              aria-label={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+            </button>
+
+            <div className="volume-container">
+              <button
+                className="control-button"
+                onClick={toggleMute}
+                aria-label={isMuted ? 'Unmute' : 'Mute'}
+              >
+                <VolumeIcon />
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={isMuted ? 0 : volume}
+                onChange={handleVolumeChange}
+                className="volume-slider"
+                aria-label="Volume"
+              />
+            </div>
+          </div>
+
+          <div className="controls-group right">
+            <div className="time-display">
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </div>
+            
+            {/* NEW: Playback Speed Button */}
+            <button
+              className="control-button"
+              onClick={cyclePlaybackSpeed}
+              aria-label="Playback Speed"
+              title={`Playback Speed: ${playbackRate}x`}
+            >
+              {playbackRate === 1 ? <FastForward size={20} /> : <span>{playbackRate}x</span>}
+            </button>
+
+            <button
+              className="control-button"
+              onClick={toggleFullScreen}
+              aria-label={isFullScreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
+            >
+              {isFullScreen ? <Minimize size={20} /> : <Maximize size={20} />}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+/**
+ * Main Player Page Component
+ */
 function PlayerPage() {
   const { playlistId } = useParams();
   const { playlists } = usePlaylists(); 
   
-  // Find the playlist from our context data
   const playlist = useMemo(() => playlists[playlistId] || { title: 'Not Found', videos: [] }, [playlists, playlistId]);
 
-  // State for the currently selected video
   const [currentVideo, setCurrentVideo] = useState(playlist.videos[0]);
-  
-  // State for notes and quizzes
   const [notes, setNotes] = useState('');
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizResult, setQuizResult] = useState(null);
 
-  // When the playlistId or playlist data changes, set the video to the first in that playlist
   useEffect(() => {
     const firstVideo = playlist.videos[0];
     setCurrentVideo(firstVideo);
-
-    // Reset notes and quiz state
     setNotes('');
     setQuizAnswers({});
     setQuizResult(null);
   }, [playlistId, playlist.videos]);
 
-  // Handle changing the video
   const handleVideoChange = (video) => {
     setCurrentVideo(video);
     setNotes('');
@@ -37,26 +398,9 @@ function PlayerPage() {
     setQuizResult(null);
   };
 
-  // --- Notes Download ---
-  const handleDownloadNotes = () => {
-    const blob = new Blob([notes], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const filename = `${currentVideo.title.replace(/ /g, '_')}_notes.txt`;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
   // --- Quiz Logic ---
   const handleQuizChange = (questionIndex, optionIndex) => {
-    setQuizAnswers({
-      ...quizAnswers,
-      [questionIndex]: optionIndex,
-    });
+    setQuizAnswers({ ...quizAnswers, [questionIndex]: optionIndex });
   };
 
   const handleSubmitQuiz = () => {
@@ -71,73 +415,6 @@ function PlayerPage() {
   };
   
   const currentQuiz = currentVideo?.quiz || [];
-
-  // --- Video Render Function ---
-  const renderVideoPlayer = (video) => {
-    if (!video) return null;
-
-    const commonIframeProps = {
-      title: video.title,
-      allowFullScreen: true,
-      className: "rounded-top",
-      style: { border: 0 },
-      allow: "autoplay; fullscreen; picture-in-picture",
-    };
-
-    switch (video.type) {
-      case 'youtube':
-        return (
-          <iframe
-            src={`https://www.youtube.com/embed/${video.src}`}
-            {...commonIframeProps}
-          ></iframe>
-        );
-      case 'screenpal':
-        return (
-          <iframe
-            src={`https://go.screenpal.com/player/${video.src}?width=100%&height=100%&ff=1&title=0&brand=0`}
-            {...commonIframeProps}
-          ></iframe>
-        );
-      case 'vimeo':
-        return (
-          <iframe
-            src={`https://player.vimeo.com/video/${video.src}`}
-            {...commonIframeProps}
-          ></iframe>
-        );
-      case 'mp4':
-        return (
-          <video
-            controls
-            src={video.src}
-            className="rounded-top"
-            style={{ width: '100%', height: '100%', backgroundColor: 'black' }}
-          >
-            Your browser does not support the video tag.
-          </video>
-        );
-      
-      case 'googledrive':
-        return (
-          <iframe
-            src={`https://drive.google.com/file/d/${video.src}/preview`}
-            {...commonIframeProps}
-          ></iframe>
-        );
-      
-      case 'mux':
-        return (
-          <iframe
-            src={`https://player.mux.com/${video.src}?video-title=${encodeURIComponent(video.title)}`}
-            {...commonIframeProps}
-          ></iframe>
-        );
-
-      default:
-        return <div className="p-3 text-center">Unsupported video type: {video.type}</div>;
-    }
-  };
 
   // --- Render ---
   if (!currentVideo) {
@@ -157,9 +434,10 @@ function PlayerPage() {
         <div className="col-lg-8">
           {/* Video Player */}
           <div className="card shadow-sm border-0 mb-4">
-            <div className="ratio ratio-16x9">
-              {renderVideoPlayer(currentVideo)}
-            </div>
+            <CustomVideoPlayer 
+              key={currentVideo.id} 
+              video={currentVideo} 
+            />
             <div className="card-body">
               <h2 className="h4">{currentVideo.title}</h2>
               <h1 className="h6 text-muted">{playlist.title}</h1>
@@ -213,19 +491,12 @@ function PlayerPage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 ></textarea>
-                <button 
-                  className="btn btn-primary mt-3"
-                  onClick={handleDownloadNotes}
-                  disabled={!notes}
-                >
-                  Download Notes
-                </button>
               </div>
               
               {/* Quiz Tab */}
               <div className="tab-pane fade" id="quiz" role="tabpanel" aria-labelledby="quiz-tab">
                 <h5 className="card-title">Quiz</h5>
-                <p className="text-muted small">Quiz for "{currentVideo.title}"</p>
+                <p className="card-text text-muted small">Quiz for "{currentVideo.title}"</p>
                 
                 {quizResult && (
                   <div className={`alert ${quizResult.score === quizResult.total ? 'alert-success' : 'alert-warning'}`}>

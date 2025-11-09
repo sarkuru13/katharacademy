@@ -1,84 +1,246 @@
-:root {
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  line-height: 1.5;
-  font-weight: 400;
+/* === Custom Video Player Styles === */
 
-  color-scheme: light;
-  color: #212529;
-  background-color: #f8f9fa; /* A very light gray background */
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.player-wrapper {
+  position: relative;
+  background-color: black;
+  border-top-left-radius: 0.375rem; /* Match card-body rounding */
+  border-top-right-radius: 0.375rem;
+  overflow: hidden;
+  /* Set aspect ratio for responsive height */
+  aspect-ratio: 16 / 9;
 }
 
-body {
+.player-wrapper video {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.player-wrapper:hover .video-controls-container,
+.player-wrapper .video-controls-container.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.video-controls-container {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  color: white;
+  background-image: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
+  padding: 10px;
+  opacity: 0;
+  transform: translateY(100%);
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+  z-index: 20;
+}
+
+.controls-bottom-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.controls-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.controls-group.right {
+  margin-left: auto;
+}
+
+.control-button {
+  background: none;
+  border: none;
+  color: white;
+  padding: 0;
   margin: 0;
-}
-
-/* Style for the active NavLink */
-.nav-link.active {
+  opacity: 0.9;
+  cursor: pointer;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+  /* Add for the new playback speed button */
+  min-width: 28px; 
+  text-align: center;
+  font-size: 0.8rem;
   font-weight: bold;
-  color: #0d6efd !important; /* Bootstrap primary color */
 }
 
-/* Custom styles for PlayerPage */
-.player-sidebar {
-  position: sticky;
-  top: 80px; /* Adjust based on navbar height */
-  /* Calculate height to avoid overlapping footer */
-  max-height: calc(100vh - 100px); 
+.control-button:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 
-.player-sidebar .card-body-scrollable {
-  max-height: calc(100vh - 200px); /* Adjust as needed */
-  overflow-y: auto;
+.volume-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.video-playlist-scroll {
-  max-height: 500px; /* Set a max height for the video list */
-  overflow-y: auto;
-  border: 1px solid #dee2e6;
-  border-radius: 0.375rem;
+.volume-slider {
+  width: 70px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  background: transparent;
 }
 
-.video-playlist-scroll .list-group-item {
-  border-left: none;
-  border-right: none;
-  border-top-width: 0;
+/* Styling for the track */
+.volume-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
+}
+.volume-slider::-moz-range-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
 }
 
-.video-playlist-scroll .list-group-item:first-child {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
+/* Styling for the thumb */
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: white;
+  margin-top: -5px; /* Center thumb */
+}
+.volume-slider::-moz-range-thumb {
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: white;
+  border: 0;
 }
 
-.video-playlist-scroll .list-group-item:last-child {
-  border-bottom-width: 0;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
+.time-display {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 90px;
+  user-select: none;
 }
 
-.video-playlist-scroll .list-group-item.active {
-  background-color: #e9ecef;
-  color: #212529;
-  border-color: #dee2e6;
-  font-weight: 600;
+/* Progress Bar */
+.progress-bar-container {
+  width: 100%;
+  padding: 8px 0;
+  margin: -8px 0; /* Make click area larger */
+  cursor: pointer;
 }
 
-/* Ensure cards in a grid are the same height */
-.h-100 {
-  height: 100% !important;
+.progress-bar {
+  width: 100%;
+  height: 5px;
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 2.5px;
+  position: relative;
+  transition: height 0.1s ease;
 }
 
-.card {
-  transition: all 0.2s ease-in-out;
+.progress-bar-container:hover .progress-bar {
+  height: 8px; /* Make bar thicker on hover */
+  border-radius: 4px;
 }
 
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+.progress-bar-fill {
+  height: 100%;
+  background-color: #0d6efd; /* Bootstrap Primary */
+  border-radius: inherit;
+  position: relative;
 }
+
+.progress-bar-thumb {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translate(50%, -50%) scale(0);
+  width: 16px;
+  height: 16px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.1s ease;
+}
+
+.progress-bar-container:hover .progress-bar-thumb {
+  transform: translate(50%, -50%) scale(1);
+}
+
+/* Center Play/Pause Button */
+.center-play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid white;
+  border-radius: 50%;
+  padding: 20px;
+  z-index: 10;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.player-wrapper:hover .center-play-button,
+.player-wrapper .center-play-button.visible {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.player-wrapper.paused .center-play-button {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.player-wrapper.paused .center-play-button:hover {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* When playing, hide the center button */
+.player-wrapper:not(.paused) .center-play-button {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.9);
+  pointer-events: none;
+}
+
+/* === NEW: Responsive Styles === */
+@media (max-width: 768px) {
+  .center-play-button {
+    padding: 15px; /* Smaller button */
+  }
+
+  /* Make time display smaller */
+  .time-display {
+    font-size: 0.8rem;
+    min-width: 75px;
+  }
+}
+
+@media (max-width: 576px) {
+  /* On very small screens, hide the volume slider */
+  .volume-slider {
+    display: none;
+  }
+  
+  .volume-container {
+    gap: 0; /* No gap if slider is hidden */
+  }
+
+  .controls-group {
+    gap: 8px; /* Reduce gap between buttons */
+  }
+  
+  .time-display {
+    min-width: 70px;
+  }
+  
+  .control-button {
+    min-width: 24px;
+  }
+}
+
+/* === End Custom Video Player Styles === */

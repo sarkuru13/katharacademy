@@ -11,46 +11,12 @@ const MOCK_PLAYLIST_DATA = {
     videos: [
       {
         id: 1,
-        type: 'youtube',
-        src: 'dGcsHMXbSOA',
+        type: 'appwrite', // <-- UPDATED type
+        src: 'https://sfo.cloud.appwrite.io/v1/storage/buckets/69108b6a000d501d0c47/files/691095df0034d70d1dee/view?project=69108b4e0031a7a0f2db&mode=admin', // <-- UPDATED src
         title: 'What is React?',
         quiz: [{ q: 'What is React?', options: ['A library', 'A framework'], answer: 0 }],
       },
-      {
-        id: 12,
-        type: 'screenpal',
-        src: 'cTXjDMnFBAf',
-        title: 'Example ScreenPal Video',
-        quiz: [{ q: 'Was this video helpful?', options: ['Yes', 'No'], answer: 0 }],
-      },
-      {
-        id: 2,
-        type: 'mp4',
-        src: 'https://videos.pexels.com/video-files/2053100/2053100-hd_1280_720_30fps.mp4',
-        title: 'Example MP4 Video',
-        quiz: [],
-      },
-      {
-        id: 3,
-        type: 'vimeo',
-        src: '59777392',
-        title: 'Example Vimeo Video',
-        quiz: [],
-      },
-      {
-        id: 6,
-        type: 'googledrive',
-        src: '1IU1n71mK0cXsUGAD5ZT68hz_JKYAsN0T',
-        title: 'My Google Drive Video',
-        quiz: [],
-      },
-      {
-        id: 7,
-        type: 'mux',
-        src: 'X02FbJmAoPmVOWiDck8KVdlDPXZmWN3wyRPNZGAyuh0100',
-        title: 'My Mux Video',
-        quiz: [],
-      }
+      // --- All other videos in this playlist removed as requested ---
     ],
   },
   'javascript-fundamentals': {
