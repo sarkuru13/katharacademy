@@ -244,3 +244,63 @@
 }
 
 /* === End Custom Video Player Styles === */
+
+
+/* === NEW: Settings Menu Styles === */
+
+.settings-container {
+  position: relative; /* Allows the menu to be positioned above it */
+}
+
+.settings-menu {
+  position: absolute;
+  bottom: 100%; /* Position above the control bar */
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.85);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px; /* Space from the button */
+  width: 160px;
+  backdrop-filter: blur(5px);
+}
+
+.settings-menu h6 {
+  font-size: 0.8rem;
+  color: #ccc;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #444;
+}
+
+.settings-menu-item {
+  background: none;
+  border: none;
+  color: white;
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.settings-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.settings-menu-item.active {
+  background-color: #0d6efd; /* Bootstrap Primary */
+  font-weight: bold;
+}
+
+.playback-rate-display {
+  font-size: 0.9rem;
+  font-weight: bold;
+  min-width: 28px;
+  text-align: center;
+}
+
+/* === End Settings Menu Styles === */
+

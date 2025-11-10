@@ -1,99 +1,100 @@
 // src/contexts/PlaylistContext.jsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
+import { databases } from '../lib/appwrite'; // <-- Import Appwrite
+import { Query } from 'appwrite'; // <-- Import Query for fetching
 
-// --- Default Mock Data ---
-const MOCK_PLAYLIST_DATA = {
-  'react-basics': {
-    title: 'React Basics',
-    description: 'Learn the fundamentals of React, from components to state.',
-    thumbnail: 'https://placehold.co/600x400/007BFF/FFFFFF?text=React+Basics',
-    category: 'free', // Used by FreeVideos page
-    videos: [
-      {
-        id: 1,
-        type: 'appwrite', // <-- UPDATED type
-        src: 'https://sfo.cloud.appwrite.io/v1/storage/buckets/69108b6a000d501d0c47/files/691095df0034d70d1dee/view?project=69108b4e0031a7a0f2db&mode=admin', // <-- UPDATED src
-        title: 'What is React?',
-        quiz: [{ q: 'What is React?', options: ['A library', 'A framework'], answer: 0 }],
-      },
-      // --- All other videos in this playlist removed as requested ---
-    ],
-  },
-  'javascript-fundamentals': {
-    title: 'JavaScript Fundamentals',
-    description: 'Master the core concepts of JavaScript.',
-    thumbnail: 'https://placehold.co/600x400/F0DB4F/000000?text=JavaScript',
-    category: 'free', // Used by FreeVideos page
-    videos: [
-      {
-        id: 4,
-        type: 'youtube',
-        src: 'W6NZfCO5eDE',
-        title: 'JS Variables',
-        quiz: [],
-      },
-    ],
-  },
-  'exclusive-deep-dive': {
-    title: 'Exclusive Deep Dive',
-    description: 'Advanced topics and pro tips, only for members.',
-    thumbnail: 'https://placehold.co/600x400/6F42C1/FFFFFF?text=Exclusive+Content',
-    category: 'exclusive', // Used by Exclusive page
-    videos: [
-      {
-        id: 5,
-        type: 'youtube',
-        src: 'SqcY0GlETPk',
-        title: 'Advanced Hooks',
-        quiz: [],
-      },
-    ],
-  },
-};
-// --- End Mock Data ---
+// --- Get Appwrite IDs from .env ---
+const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
+const PLAYLISTS_COL_ID = import.meta.env.VITE_APPWRITE_PLAYLISTS_COL_ID;
+const VIDEOS_COL_ID = import.meta.env.VITE_APPWRITE_VIDEOS_COL_ID;
+// --- End Appwrite Config ---
 
 // Create the context
 export const PlaylistContext = createContext(null);
 
 // Create the Provider component
 export function PlaylistProvider({ children }) {
-  const [playlists, setPlaylists] = useState(() => {
-    // 1. Try to get data from localStorage
-    try {
-      const storedData = localStorage.getItem('academyPlaylists');
-      if (storedData) {
-        return JSON.parse(storedData);
-      }
-    } catch (error) {
-      console.error('Could not parse localStorage data:', error);
-    }
-    // 2. If nothing in localStorage, use the default mock data
-    return MOCK_PLAYLIST_DATA;
-  });
+  const [playlists, setPlaylists] = useState({});
+  const [loading, setLoading] = useState(true);
 
-  // Function to update playlists and save to localStorage
-  const updatePlaylists = (newPlaylists) => {
+  useEffect(() => {
+    // Fetch data from Appwrite when the provider mounts
+    fetchData();
+  }, []);
+
+  /**
+   * Fetches playlists and their corresponding videos from Appwrite
+   * and combines them into the nested object structure the app expects.
+   */
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const jsonString = JSON.stringify(newPlaylists);
-      setPlaylists(newPlaylists);
-      localStorage.setItem('academyPlaylists', jsonString);
-      return { success: true };
+      // 1. Fetch all playlist documents
+      const playlistData = await databases.listDocuments(DB_ID, PLAYLISTS_COL_ID);
+
+      // 2. Fetch all video documents (up to 100)
+      const videoData = await databases.listDocuments(
+        DB_ID,
+        VIDEOS_COL_ID,
+        [Query.limit(100)] // You can increase this limit if you have more videos
+      );
+
+      // 3. Create a map for easy playlist lookup
+      const playlistsMap = {};
+      for (const playlist of playlistData.documents) {
+        playlistsMap[playlist.$id] = {
+          ...playlist, // Spread all attributes (title, description, category, etc.)
+          id: playlist.$id, // Add `id` property for compatibility
+          videos: [], // Prepare to hold the nested videos
+        };
+      }
+
+      // 4. Go through all videos and add them to their parent playlist
+      for (const video of videoData.documents) {
+        if (playlistsMap[video.playlistId]) {
+          // Parse the quiz string back into an object/array
+          const quiz = video.quiz ? JSON.parse(video.quiz) : [];
+          
+          playlistsMap[video.playlistId].videos.push({
+            ...video,
+            id: video.$id, // Add `id` property
+            quiz: quiz,
+          });
+        }
+      }
+      
+      // Bonus: Sort videos within each playlist by the 'order' attribute
+      for (const playlistId in playlistsMap) {
+        playlistsMap[playlistId].videos.sort((a, b) => a.order - b.order);
+      }
+
+      // 5. Set the final, combined data
+      setPlaylists(playlistsMap);
+
     } catch (error) {
-      console.error('Failed to save playlists to localStorage:', error);
-      return { success: false, error: 'Data must be valid JSON.' };
+      console.error('Failed to fetch playlist data from Appwrite:', error);
     }
+    setLoading(false);
   };
 
-  // Function to get the current data as a formatted string (for the admin page)
+  // This function will be used by the admin panel later
+  // For now, it just refetches all data.
+  const updatePlaylists = () => {
+    fetchData();
+  };
+
+  // This function is no longer needed but kept for compatibility
+  // to avoid errors in ManageContent.jsx for now.
   const getPlaylistsAsJsonString = () => {
-    return JSON.stringify(playlists, null, 2); // Pretty-print the JSON
+    return JSON.stringify(playlists, null, 2);
   };
 
   return (
     <PlaylistContext.Provider
-      value={{ playlists, updatePlaylists, getPlaylistsAsJsonString }}
+      value={{ playlists, loading, updatePlaylists, getPlaylistsAsJsonString }}
     >
-      {children}
+      {/* Don't render children until data is loaded */}
+      {!loading && children}
     </PlaylistContext.Provider>
   );
 }
