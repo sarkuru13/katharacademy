@@ -1,7 +1,8 @@
 // src/contexts/PlaylistContext.jsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { databases } from '../lib/appwrite'; // <-- Import Appwrite
-import { Query } from 'appwrite'; // <-- Import Query for fetching
+import { databases } from '../lib/appwrite'; //
+import { Query } from 'appwrite';
+import LoadingSpinner from '../components/LoadingSpinner'; // <-- 1. Import
 
 // --- Get Appwrite IDs from .env ---
 const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
@@ -18,57 +19,45 @@ export function PlaylistProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch data from Appwrite when the provider mounts
     fetchData();
   }, []);
 
-  /**
-   * Fetches playlists and their corresponding videos from Appwrite
-   * and combines them into the nested object structure the app expects.
-   */
   const fetchData = async () => {
+    // ... (This function is unchanged)
     setLoading(true);
     try {
-      // 1. Fetch all playlist documents
       const playlistData = await databases.listDocuments(DB_ID, PLAYLISTS_COL_ID);
-
-      // 2. Fetch all video documents (up to 100)
       const videoData = await databases.listDocuments(
         DB_ID,
         VIDEOS_COL_ID,
-        [Query.limit(100)] // You can increase this limit if you have more videos
+        [Query.limit(100)] 
       );
 
-      // 3. Create a map for easy playlist lookup
       const playlistsMap = {};
       for (const playlist of playlistData.documents) {
         playlistsMap[playlist.$id] = {
-          ...playlist, // Spread all attributes (title, description, category, etc.)
-          id: playlist.$id, // Add `id` property for compatibility
-          videos: [], // Prepare to hold the nested videos
+          ...playlist,
+          id: playlist.$id,
+          videos: [],
         };
       }
 
-      // 4. Go through all videos and add them to their parent playlist
       for (const video of videoData.documents) {
         if (playlistsMap[video.playlistId]) {
-          // Parse the quiz string back into an object/array
           const quiz = video.quiz ? JSON.parse(video.quiz) : [];
           
           playlistsMap[video.playlistId].videos.push({
             ...video,
-            id: video.$id, // Add `id` property
+            id: video.$id,
             quiz: quiz,
           });
         }
       }
       
-      // Bonus: Sort videos within each playlist by the 'order' attribute
       for (const playlistId in playlistsMap) {
         playlistsMap[playlistId].videos.sort((a, b) => a.order - b.order);
       }
 
-      // 5. Set the final, combined data
       setPlaylists(playlistsMap);
 
     } catch (error) {
@@ -77,29 +66,27 @@ export function PlaylistProvider({ children }) {
     setLoading(false);
   };
 
-  // This function will be used by the admin panel later
-  // For now, it just refetches all data.
+  // ... (updatePlaylists and getPlaylistsAsJsonString are unchanged)
   const updatePlaylists = () => {
     fetchData();
   };
-
-  // This function is no longer needed but kept for compatibility
-  // to avoid errors in ManageContent.jsx for now.
   const getPlaylistsAsJsonString = () => {
     return JSON.stringify(playlists, null, 2);
   };
 
+  // --- THIS IS THE CHANGE ---
   return (
     <PlaylistContext.Provider
       value={{ playlists, loading, updatePlaylists, getPlaylistsAsJsonString }}
     >
-      {/* Don't render children until data is loaded */}
-      {!loading && children}
+      {/* If loading, show spinner. If not, show the app. */}
+      {loading ? <LoadingSpinner isFullScreen={true} /> : children}
     </PlaylistContext.Provider>
   );
+  // --- END CHANGE ---
 }
 
-// Custom hook to make using the context easier
+// Custom hook
 export const usePlaylists = () => {
   const context = useContext(PlaylistContext);
   if (!context) {

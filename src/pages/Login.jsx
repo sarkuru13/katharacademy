@@ -5,7 +5,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { AlertTriangle } from 'lucide-react';
 
 function Login() {
-  const { user, login } = useAuth();
+  const { user, login, loginWithGoogle } = useAuth(); // <-- Get `loginWithGoogle`
   const navigate = useNavigate();
   
   const [email, setEmail] = useState('');
@@ -37,10 +37,11 @@ function Login() {
           <div className="card shadow-sm border-0">
             <div className="card-body p-4 p-md-5">
               <div className="text-center mb-4">
-                <h1 className="h2 fw-bold">Login</h1>
+                <h1 className="h2 fw-bold">Login or Register</h1>
                 <p className="text-muted">
-                  Access your exclusive content.
-                </p>
+                  You need an account to access exclusive content.
+                </p>{' '}
+                {/* <-- THIS IS THE CORRECTED LINE */}
               </div>
 
               {error && (
@@ -79,9 +80,28 @@ function Login() {
                   </button>
                 </div>
               </form>
-              <div className="text-center mt-3">
-                <Link to="/register">Don't have an account? Sign Up</Link>
+
+              {/* --- ADDED THIS BUTTON --- */}
+              <div className="d-grid mt-3">
+                <button
+                  type="button"
+                  className="btn btn-outline-danger btn-lg"
+                  onClick={loginWithGoogle}
+                >
+                  {/* You could add a Google icon here later */}
+                  Login with Google
+                </button>
               </div>
+              {/* --- END BUTTON --- */}
+
+              <hr className="my-4" />
+              <div className="text-center">
+                <p className="text-muted mb-2">Don't have an account?</p>
+                <Link to="/register" className="btn btn-outline-success btn-lg w-100">
+                  Create a New Account
+                </Link>
+              </div>
+
             </div>
           </div>
         </div>
