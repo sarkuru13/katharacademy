@@ -1,8 +1,8 @@
 // src/contexts/PlaylistContext.jsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { databases } from '../lib/appwrite'; //
+import { databases } from '../lib/appwrite'; 
 import { Query } from 'appwrite';
-import LoadingSpinner from '../components/LoadingSpinner'; // <-- 1. Import
+import LoadingSpinner from '../components/LoadingSpinner';
 
 // --- Get Appwrite IDs from .env ---
 const DB_ID = import.meta.env.VITE_APPWRITE_DATABASE_ID;
@@ -23,7 +23,6 @@ export function PlaylistProvider({ children }) {
   }, []);
 
   const fetchData = async () => {
-    // ... (This function is unchanged)
     setLoading(true);
     try {
       const playlistData = await databases.listDocuments(DB_ID, PLAYLISTS_COL_ID);
@@ -66,7 +65,6 @@ export function PlaylistProvider({ children }) {
     setLoading(false);
   };
 
-  // ... (updatePlaylists and getPlaylistsAsJsonString are unchanged)
   const updatePlaylists = () => {
     fetchData();
   };
@@ -74,16 +72,24 @@ export function PlaylistProvider({ children }) {
     return JSON.stringify(playlists, null, 2);
   };
 
-  // --- THIS IS THE CHANGE ---
   return (
     <PlaylistContext.Provider
       value={{ playlists, loading, updatePlaylists, getPlaylistsAsJsonString }}
     >
-      {/* If loading, show spinner. If not, show the app. */}
-      {loading ? <LoadingSpinner isFullScreen={true} /> : children}
+      {/* Logic: 
+         1. If loading, show the Blur Overlay.
+         2. If loaded, show the children wrapped in the Slide Up Animation.
+        
+      */}
+      {loading ? (
+        <LoadingSpinner isFullScreen={true} />
+      ) : (
+        <div className="animate-slide-up">
+          {children}
+        </div>
+      )}
     </PlaylistContext.Provider>
   );
-  // --- END CHANGE ---
 }
 
 // Custom hook

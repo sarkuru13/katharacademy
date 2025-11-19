@@ -1,12 +1,13 @@
+/* src/index.css */
+
 /* === Custom Video Player Styles === */
 
 .player-wrapper {
   position: relative;
   background-color: black;
-  border-top-left-radius: 0.375rem; /* Match card-body rounding */
+  border-top-left-radius: 0.375rem;
   border-top-right-radius: 0.375rem;
   overflow: hidden;
-  /* Set aspect ratio for responsive height */
   aspect-ratio: 16 / 9;
 }
 
@@ -61,7 +62,6 @@
   opacity: 0.9;
   cursor: pointer;
   transition: opacity 0.1s ease, transform 0.1s ease;
-  /* Add for the new playback speed button */
   min-width: 28px; 
   text-align: center;
   font-size: 0.8rem;
@@ -86,7 +86,6 @@
   background: transparent;
 }
 
-/* Styling for the track */
 .volume-slider::-webkit-slider-runnable-track {
   width: 100%;
   height: 4px;
@@ -100,14 +99,13 @@
   border-radius: 2px;
 }
 
-/* Styling for the thumb */
 .volume-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   height: 14px;
   width: 14px;
   border-radius: 50%;
   background: white;
-  margin-top: -5px; /* Center thumb */
+  margin-top: -5px;
 }
 .volume-slider::-moz-range-thumb {
   height: 14px;
@@ -124,11 +122,10 @@
   user-select: none;
 }
 
-/* Progress Bar */
 .progress-bar-container {
   width: 100%;
   padding: 8px 0;
-  margin: -8px 0; /* Make click area larger */
+  margin: -8px 0;
   cursor: pointer;
 }
 
@@ -142,13 +139,13 @@
 }
 
 .progress-bar-container:hover .progress-bar {
-  height: 8px; /* Make bar thicker on hover */
+  height: 8px;
   border-radius: 4px;
 }
 
 .progress-bar-fill {
   height: 100%;
-  background-color: #0d6efd; /* Bootstrap Primary */
+  background-color: #0d6efd;
   border-radius: inherit;
   position: relative;
 }
@@ -169,7 +166,6 @@
   transform: translate(50%, -50%) scale(1);
 }
 
-/* Center Play/Pause Button */
 .center-play-button {
   position: absolute;
   top: 50%;
@@ -200,20 +196,16 @@
   transform: translate(-50%, -50%) scale(1.1);
 }
 
-/* When playing, hide the center button */
 .player-wrapper:not(.paused) .center-play-button {
   opacity: 0;
   transform: translate(-50%, -50%) scale(0.9);
   pointer-events: none;
 }
 
-/* === NEW: Responsive Styles === */
 @media (max-width: 768px) {
   .center-play-button {
-    padding: 15px; /* Smaller button */
+    padding: 15px;
   }
-
-  /* Make time display smaller */
   .time-display {
     font-size: 0.8rem;
     min-width: 75px;
@@ -221,45 +213,36 @@
 }
 
 @media (max-width: 576px) {
-  /* On very small screens, hide the volume slider */
   .volume-slider {
     display: none;
   }
-  
   .volume-container {
-    gap: 0; /* No gap if slider is hidden */
+    gap: 0;
   }
-
   .controls-group {
-    gap: 8px; /* Reduce gap between buttons */
+    gap: 8px;
   }
-  
   .time-display {
     min-width: 70px;
   }
-  
   .control-button {
     min-width: 24px;
   }
 }
 
-/* === End Custom Video Player Styles === */
-
-
-/* === NEW: Settings Menu Styles === */
-
+/* === Settings Menu Styles === */
 .settings-container {
-  position: relative; /* Allows the menu to be positioned above it */
+  position: relative;
 }
 
 .settings-menu {
   position: absolute;
-  bottom: 100%; /* Position above the control bar */
+  bottom: 100%;
   right: 0;
   background-color: rgba(0, 0, 0, 0.85);
   border-radius: 8px;
   padding: 10px;
-  margin-bottom: 10px; /* Space from the button */
+  margin-bottom: 10px;
   width: 160px;
   backdrop-filter: blur(5px);
 }
@@ -291,7 +274,7 @@
 }
 
 .settings-menu-item.active {
-  background-color: #0d6efd; /* Bootstrap Primary */
+  background-color: #0d6efd;
   font-weight: bold;
 }
 
@@ -302,5 +285,114 @@
   text-align: center;
 }
 
-/* === End Settings Menu Styles === */
 
+/* === UPDATED Loading Screen Styles === */
+
+.loading-blur-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  
+  /* Soft gradient background so it's visible on top of white */
+  background: radial-gradient(circle at 50% 50%, #f8f9fa 0%, #e9ecef 100%);
+  
+  /* Blur effect */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+/* Container for the animated text words */
+.loading-text-wrapper {
+  display: flex;
+  align-items: center; /* Center align cursor */
+  gap: 1rem; /* Space between words */
+  margin-bottom: 1rem;
+}
+
+.loading-word {
+  display: flex;
+}
+
+/* Individual letters for typing effect */
+.loading-letter {
+  font-size: 3rem;
+  font-weight: 800;
+  display: inline-block;
+  
+  /* Start hidden */
+  opacity: 0;
+  
+  /* Gradient Text Color */
+  background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  
+  /* The Typing Animation: Reveal one by one */
+  animation: typeReveal 0.05s linear forwards;
+}
+
+/* The Blinking Cursor */
+.blinking-cursor {
+  display: inline-block;
+  width: 3px;
+  height: 3rem;
+  background-color: #6f42c1; /* Match brand purple */
+  margin-left: 2px;
+  animation: cursorBlink 1s infinite;
+}
+
+/* "Something amazing is coming" subtitle */
+.loading-subtitle {
+  color: #6c757d;
+  font-size: 0.9rem;
+  font-weight: 500;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  animation: fadeInPulse 2s ease-in-out infinite;
+  opacity: 0.8;
+}
+
+/* === Animations === */
+
+/* 1. Reveal Letter (Typing) */
+@keyframes typeReveal {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* 2. Cursor Blink */
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* 3. Subtitle Pulse */
+@keyframes fadeInPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* 4. Slide Up Reveal (For the page content) */
+.animate-slide-up {
+  animation: slideUpReveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: bottom center;
+}
+
+@keyframes slideUpReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(80px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
