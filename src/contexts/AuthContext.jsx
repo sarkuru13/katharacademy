@@ -1,14 +1,11 @@
 // src/contexts/AuthContext.jsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { account } from '../lib/appwrite'; //
+import { account } from '../lib/appwrite'; 
 import { ID } from 'appwrite';
 import LoadingSpinner from '../components/LoadingSpinner'; 
 
-// 1. Create the context
 export const AuthContext = createContext(null);
 
-// 2. Create the provider component
-// --- CHANGED --- (Removed 'export' from this line)
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -69,6 +66,22 @@ function AuthProvider({ children }) {
     }
   };
 
+  // --- NEW FUNCTIONS START ---
+  
+  // 1. Send the email
+  const requestPasswordReset = async (email) => {
+    // This URL is where the user will be redirected when they click the email link.
+    // Appwrite will append ?userId=...&secret=... to this URL.
+    const resetUrl = `${window.location.origin}/reset-password`;
+    return await account.createRecovery(email, resetUrl);
+  };
+
+  // 2. Complete the reset using the secret from the URL
+  const completePasswordReset = async (userId, secret, password) => {
+    return await account.updateRecovery(userId, secret, password);
+  };
+  // --- NEW FUNCTIONS END ---
+
   const isAdmin = user ? user.labels.includes('admin') : false;
   
   const value = {
@@ -79,6 +92,8 @@ function AuthProvider({ children }) {
     logout,
     register,
     loginWithGoogle,
+    requestPasswordReset,  // <--- Export this
+    completePasswordReset, // <--- Export this
   };
 
   if (loading) {
@@ -92,7 +107,6 @@ function AuthProvider({ children }) {
   );
 }
 
-// 5. Create a custom hook for easy access
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -101,5 +115,4 @@ export const useAuth = () => {
   return context;
 };
 
-// --- ADDED THIS LINE ---
-export default AuthProvider; // Make the component the default export
+export default AuthProvider;
